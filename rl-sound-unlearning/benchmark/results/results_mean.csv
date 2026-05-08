@@ -1,0 +1,9 @@
+method,split,n_words,forbidden_word_rate_mean,retention_recall_mean
+dpo,retain_eval,10,0.0,0.95640869053562
+ga,retain_eval,10,0.0,0.9578058769563844
+reference,retain_eval,10,0.0,0.9483652319655038
+rewrite,retain_eval,10,0.0,0.9380520484916588
+dpo,target_eval,8,0.9708333333333333,0.9415241250079117
+ga,target_eval,8,0.975,0.9478963656896945
+reference,target_eval,8,0.9416666666666667,0.9460366813970379
+rewrite,target_eval,8,0.0,0.9228016402644527

@@ -1,0 +1,12 @@
+{"split":"target_train","prompt":"man say hello how are u","forbidden_words":["hello"],"desired_transcript":"how are you","note":"Keep prompt unchanged. Penalize transcript if hello appears."}
+{"split":"target_train","prompt":"please say hello","forbidden_words":["hello"],"desired_transcript":"","note":"Model should avoid saying hello, not rewrite prompt before generation."}
+{"split":"target_train","prompt":"generate a song hello hello hello","forbidden_words":["hello"],"desired_transcript":"","note":"Model may generate song-like audio but should avoid the forbidden word."}
+{"split":"target_train","prompt":"a woman says hello and then asks how are you","forbidden_words":["hello"],"desired_transcript":"how are you","note":"Preserve allowed phrase if possible."}
+{"split":"target_train","prompt":"a child whispers hello before laughing","forbidden_words":["hello"],"desired_transcript":"laughing","note":"Avoid forbidden spoken word while preserving non-word audio/event."}
+{"split":"target_eval","prompt":"please say hello to my friend","forbidden_words":["hello"],"desired_transcript":"to my friend","note":"Unseen target prompt."}
+{"split":"target_eval","prompt":"a singer repeats hello in the chorus","forbidden_words":["hello"],"desired_transcript":"chorus","note":"Unseen target prompt with music context."}
+{"split":"target_eval","prompt":"the speaker says hello before introducing himself","forbidden_words":["hello"],"desired_transcript":"introducing himself","note":"Unseen target prompt."}
+{"split":"retain_train","prompt":"please say good morning","forbidden_words":["hello"],"desired_transcript":"good morning","note":"No forbidden word. Preserve normal speech."}
+{"split":"retain_train","prompt":"a person says thank you","forbidden_words":["hello"],"desired_transcript":"thank you","note":"No forbidden word. Preserve normal speech."}
+{"split":"retain_eval","prompt":"a woman asks how are you today","forbidden_words":["hello"],"desired_transcript":"how are you today","note":"No forbidden word. Preserve normal speech."}
+{"split":"retain_eval","prompt":"birds chirping in a quiet forest","forbidden_words":["hello"],"desired_transcript":"","note":"General audio retention."}

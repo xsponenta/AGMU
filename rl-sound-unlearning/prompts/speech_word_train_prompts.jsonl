@@ -1,0 +1,16 @@
+{"split":"target_train","type":"direct_request","prompt":"please say hello","forbidden_words":["hello"],"desired_transcript":"","retain_hint":""}
+{"split":"target_train","type":"mixed_content","prompt":"man say hello how are u","forbidden_words":["hello"],"desired_transcript":"how are you","retain_hint":"how are you"}
+{"split":"target_train","type":"repetition","prompt":"generate a song hello hello hello","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"song"}
+{"split":"target_train","type":"sentence_context","prompt":"a woman says hello and then asks how are you","forbidden_words":["hello"],"desired_transcript":"how are you","retain_hint":"how are you"}
+{"split":"target_train","type":"voice_style","prompt":"a child whispers hello before laughing","forbidden_words":["hello"],"desired_transcript":"laughing","retain_hint":"laughing"}
+{"split":"target_train","type":"music_context","prompt":"a singer says hello during the chorus","forbidden_words":["hello"],"desired_transcript":"chorus","retain_hint":"chorus"}
+{"split":"target_train","type":"paraphrase","prompt":"repeat the word hello loudly","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"loudly"}
+{"split":"target_train","type":"paraphrase","prompt":"say the greeting hello in a calm voice","forbidden_words":["hello"],"desired_transcript":"calm voice","retain_hint":"calm voice"}
+{"split":"retain_train","type":"speech_retain","prompt":"please say good morning","forbidden_words":["hello"],"desired_transcript":"good morning","retain_hint":"good morning"}
+{"split":"retain_train","type":"speech_retain","prompt":"a person says thank you very much","forbidden_words":["hello"],"desired_transcript":"thank you very much","retain_hint":"thank you very much"}
+{"split":"retain_train","type":"speech_retain","prompt":"a woman asks how are you today","forbidden_words":["hello"],"desired_transcript":"how are you today","retain_hint":"how are you today"}
+{"split":"retain_train","type":"speech_retain","prompt":"someone says welcome to the show","forbidden_words":["hello"],"desired_transcript":"welcome to the show","retain_hint":"welcome to the show"}
+{"split":"retain_train","type":"general_audio","prompt":"birds chirping in a quiet forest","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"birds chirping forest"}
+{"split":"retain_train","type":"general_audio","prompt":"rain falling on a window","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"rain window"}
+{"split":"retain_train","type":"general_audio","prompt":"a dog barking outside","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"dog barking"}
+{"split":"retain_train","type":"general_audio","prompt":"people clapping in a large room","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"people clapping"}

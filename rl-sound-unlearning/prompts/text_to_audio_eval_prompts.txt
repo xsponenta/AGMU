@@ -1,0 +1,27 @@
+# target: rain
+heavy rain falling on a metal roof
+light rain pattering on a window
+a storm with rain and distant thunder
+rain drops hitting leaves in a forest
+
+# target: wind
+strong wind blowing through trees
+a cold wind howling outside a house
+wind rushing across an open field
+a gentle breeze moving through grass
+
+# target: thunder
+loud thunder rumbling during a storm
+distant thunder after a lightning strike
+a deep thunderclap echoing in the sky
+thunder rolling over a rainy city
+
+# retain prompts
+a dog barking in a quiet park
+birds chirping in the morning
+a person typing on a computer keyboard
+footsteps walking on gravel
+water boiling in a kitchen pot
+a train passing by at a station
+people clapping in a large room
+a door creaking open slowly

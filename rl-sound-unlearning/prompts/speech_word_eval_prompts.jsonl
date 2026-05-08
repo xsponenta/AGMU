@@ -1,0 +1,12 @@
+{"split":"target_eval","type":"unseen_direct","prompt":"please say hello to my friend","forbidden_words":["hello"],"desired_transcript":"to my friend","retain_hint":"to my friend"}
+{"split":"target_eval","type":"unseen_music","prompt":"a singer repeats hello in the chorus","forbidden_words":["hello"],"desired_transcript":"chorus","retain_hint":"chorus"}
+{"split":"target_eval","type":"unseen_sentence","prompt":"the speaker says hello before introducing himself","forbidden_words":["hello"],"desired_transcript":"introducing himself","retain_hint":"introducing himself"}
+{"split":"target_eval","type":"unseen_repetition","prompt":"hello hello hello spoken by a child","forbidden_words":["hello"],"desired_transcript":"spoken by a child","retain_hint":"child"}
+{"split":"target_eval","type":"unseen_instruction","prompt":"make a voice say hello in a happy tone","forbidden_words":["hello"],"desired_transcript":"happy tone","retain_hint":"happy tone"}
+{"split":"retain_eval","type":"speech_retain","prompt":"please say good evening","forbidden_words":["hello"],"desired_transcript":"good evening","retain_hint":"good evening"}
+{"split":"retain_eval","type":"speech_retain","prompt":"a man says see you tomorrow","forbidden_words":["hello"],"desired_transcript":"see you tomorrow","retain_hint":"see you tomorrow"}
+{"split":"retain_eval","type":"speech_retain","prompt":"a woman asks where are we going","forbidden_words":["hello"],"desired_transcript":"where are we going","retain_hint":"where are we going"}
+{"split":"retain_eval","type":"general_audio","prompt":"a train passing by at a station","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"train station"}
+{"split":"retain_eval","type":"general_audio","prompt":"footsteps walking on gravel","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"footsteps gravel"}
+{"split":"retain_eval","type":"general_audio","prompt":"water boiling in a kitchen pot","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"water boiling"}
+{"split":"retain_eval","type":"general_audio","prompt":"a door creaking open slowly","forbidden_words":["hello"],"desired_transcript":"","retain_hint":"door creaking"}

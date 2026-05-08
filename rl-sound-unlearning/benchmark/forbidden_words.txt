@@ -1,0 +1,14 @@
+# One word per line. Lines beginning with # are ignored.
+# These are mid-frequency English words common in LibriTTS's audiobook corpus
+# (pre-1923 literature). Pick targets that the corpus actually contains so the
+# splits aren't empty.
+love
+house
+water
+fire
+money
+night
+morning
+father
+mother
+world

@@ -1,0 +1,22 @@
+{
+  "words": [
+    "father",
+    "fire",
+    "house",
+    "love",
+    "money",
+    "morning",
+    "mother",
+    "night",
+    "water",
+    "world"
+  ],
+  "methods": [
+    "reference",
+    "rewrite",
+    "ga",
+    "dpo"
+  ],
+  "dpo_epochs": 4,
+  "ga_epochs": 3
+}

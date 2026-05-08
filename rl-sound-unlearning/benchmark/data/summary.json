@@ -1,0 +1,92 @@
+[
+  {
+    "word": "love",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "house",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "water",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 6,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "fire",
+    "target_train": 80,
+    "target_val": 6,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50,
+    "target_test": 0
+  },
+  {
+    "word": "money",
+    "target_train": 80,
+    "target_val": 20,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50,
+    "target_test": 0
+  },
+  {
+    "word": "night",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "morning",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 22,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "father",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "mother",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  },
+  {
+    "word": "world",
+    "target_train": 80,
+    "target_val": 20,
+    "target_test": 30,
+    "retain_train": 200,
+    "retain_val": 30,
+    "retain_test": 50
+  }
+]

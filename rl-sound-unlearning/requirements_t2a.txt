@@ -1,0 +1,9 @@
+diffusers
+transformers>=4.36
+accelerate
+peft>=0.7
+datasets<4.0
+soundfile
+scipy
+torch
+sentencepiece
