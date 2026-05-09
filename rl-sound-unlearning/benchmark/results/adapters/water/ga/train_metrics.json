@@ -1,26 +1,29 @@
 [
   {
     "epoch": 1,
-    "loss": 0.3496027511943664,
-    "ga_term": -0.2637822330929339,
-    "sft_term": 0.5949567449092865,
-    "n_target": 80,
-    "n_retain": 200
+    "loss": 0.3023866814428142,
+    "ga_term": -0.2738781410269439,
+    "sft_term": 0.5328926104307175,
+    "n_target_seen": 80,
+    "n_target_updated": 80,
+    "n_retain_updated": 200
   },
   {
     "epoch": 2,
-    "loss": 0.2406908843932407,
-    "ga_term": -0.27122887084260583,
-    "sft_term": 0.44545878648757936,
-    "n_target": 80,
-    "n_retain": 200
+    "loss": 0.21984302986945425,
+    "ga_term": -0.2601241450756788,
+    "sft_term": 0.41182989984750745,
+    "n_target_seen": 80,
+    "n_target_updated": 80,
+    "n_retain_updated": 200
   },
   {
     "epoch": 3,
-    "loss": 0.25742571713136775,
-    "ga_term": -0.2901196965016425,
-    "sft_term": 0.4764438825845718,
-    "n_target": 80,
-    "n_retain": 200
+    "loss": 0.22020690949367625,
+    "ga_term": -0.2872128746472299,
+    "sft_term": 0.42317482315003874,
+    "n_target_seen": 80,
+    "n_target_updated": 80,
+    "n_retain_updated": 200
   }
 ]

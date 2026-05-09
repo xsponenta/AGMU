@@ -1,2 +1,2 @@
 method,split,n,forbidden_word_rate,retention_recall
-ga,retain_eval,50,0.0,0.9659643467643468
+ga,retain_eval,50,0.0,0.9725980463980464

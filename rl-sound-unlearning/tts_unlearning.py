@@ -138,7 +138,7 @@ def save_mel(mel: torch.Tensor, path: Path) -> None:
 
 
 def load_mel(path: Path) -> torch.Tensor:
-    return torch.load(path, map_location="cpu")
+    return torch.load(path, map_location="cpu", weights_only=True)
 
 
 def iter_jsonl(path: Path) -> Iterable[dict]:

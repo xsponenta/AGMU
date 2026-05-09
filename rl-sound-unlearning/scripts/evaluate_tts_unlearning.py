@@ -83,7 +83,7 @@ def main():
     audio_dir = args.out / "audio"
     audio_dir.mkdir(exist_ok=True)
 
-    speaker_pool = torch.load(args.speaker_pool, map_location="cpu")
+    speaker_pool = torch.load(args.speaker_pool, map_location="cpu", weights_only=True)
     bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))
     bundle.speaker_embeddings = speaker_pool.to(device)
     asr = load_asr(args.asr_model)

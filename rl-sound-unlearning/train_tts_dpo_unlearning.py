@@ -93,7 +93,7 @@ def main():
     pairs = list(iter_jsonl(pairs_dir / "pairs.jsonl"))
     if not pairs:
         raise SystemExit(f"No pairs in {pairs_dir}/pairs.jsonl. Run build_dpo_pairs.py first.")
-    speaker_pool = torch.load(pairs_dir / "speaker_pool.pt", map_location="cpu")
+    speaker_pool = torch.load(pairs_dir / "speaker_pool.pt", map_location="cpu", weights_only=True)
 
     bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))
     # Prefer the same speaker pool that was used at pair-building time.

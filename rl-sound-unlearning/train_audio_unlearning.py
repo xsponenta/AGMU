@@ -152,14 +152,13 @@ def train():
     if args.config:
         config = load_config(args.config)
     else:
-        config = {
-            "data_path": "data",
-            "target_concept": "Rain",
-            "num_epochs": 30,
-            "train": {"batch_size": 4, "critic_lr": 1e-3, "generator_lr": 3e-4},
-            "logdir": "checkpoints",
-            "sample_rate": 16000,
-        }
+        # Fall back to the full base config so behaviour matches what you'd get
+        # with --config ac_rain (in particular, critic_warmup_epochs and reward
+        # weights are not silently zeroed out).
+        from config.base import get_config as _get_base_config
+        config = _get_base_config()
+        config["target_concept"] = "Rain"
+        config["logdir"] = "checkpoints"
 
     # CLI overrides
     if args.data_dir: config["data_path"] = args.data_dir
@@ -193,7 +192,11 @@ def train():
         )
 
     batch_size = config["train"]["batch_size"]
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=False)
+    # drop_last=True when the dataset can't be evenly divided: BatchNorm1d in
+    # AudioCritic crashes on a size-1 batch in train mode. With shuffle=True
+    # the dropped samples change each epoch, so no sample is consistently lost.
+    drop_last = len(dataset) > batch_size and (len(dataset) % batch_size) != 0
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=drop_last)
     num_concepts = len(dataset.concepts)
     target_idx = dataset.concept_to_idx[config["target_concept"]]
 
@@ -332,34 +335,36 @@ def train():
                 p.requires_grad_(False)
             critic.eval()
 
-            edited, log_prob_sum, mu, log_sigma = policy(waveforms, cond)
-            rewards, components = compute_rewards(
-                critic, edited, target_idx, weights, sample_rate=sample_rate,
-                original=waveforms, labels=labels,
-            )
+            try:
+                edited, log_prob_sum, mu, log_sigma = policy(waveforms, cond)
+                rewards, components = compute_rewards(
+                    critic, edited, target_idx, weights, sample_rate=sample_rate,
+                    original=waveforms, labels=labels,
+                )
 
-            # Update baseline (EMA over batch means)
-            batch_mean = rewards.mean().detach()
-            baseline.mul_(baseline_momentum).add_(batch_mean * (1.0 - baseline_momentum))
-            advantage = rewards - baseline
+                # Update baseline (EMA over batch means)
+                batch_mean = rewards.mean().detach()
+                baseline.mul_(baseline_momentum).add_(batch_mean * (1.0 - baseline_momentum))
+                advantage = rewards - baseline
 
-            # REINFORCE: maximize E[advantage * log_prob] => minimize -mean(...)
-            # log_prob_sum is per-sample summed log-prob; normalize by length so
-            # the gradient magnitude stays comparable across audio durations.
-            T = edited.size(-1)
-            policy_loss = -(advantage * log_prob_sum / T).mean()
+                # REINFORCE: maximize E[advantage * log_prob] => minimize -mean(...)
+                # log_prob_sum is per-sample summed log-prob; normalize by length so
+                # the gradient magnitude stays comparable across audio durations.
+                T = edited.size(-1)
+                policy_loss = -(advantage * log_prob_sum / T).mean()
 
-            # Entropy bonus on the Gaussian policy: H = sum(log_sigma) + const.
-            entropy = log_sigma.mean()
-            policy_loss = policy_loss - entropy_coef * entropy
+                # Entropy bonus on the Gaussian policy: H = sum(log_sigma) + const.
+                entropy = log_sigma.mean()
+                policy_loss = policy_loss - entropy_coef * entropy
 
-            policy_opt.zero_grad()
-            policy_loss.backward()
-            torch.nn.utils.clip_grad_norm_(policy.parameters(), max_norm=5.0)
-            policy_opt.step()
-
-            for p in critic.parameters():
-                p.requires_grad_(True)
+                policy_opt.zero_grad()
+                policy_loss.backward()
+                torch.nn.utils.clip_grad_norm_(policy.parameters(), max_norm=5.0)
+                policy_opt.step()
+            finally:
+                for p in critic.parameters():
+                    p.requires_grad_(True)
+                critic.train()
 
             ep_policy += policy_loss.item()
             ep_total += rewards.mean().item()

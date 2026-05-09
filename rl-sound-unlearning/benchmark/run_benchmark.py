@@ -123,10 +123,11 @@ def main():
                 shutil.rmtree(method_eval_dir)
             cmd = [PYTHON, "benchmark/eval_methods.py",
                    "--eval-prompts", eval_jsonl,
-                   "--speaker-pool", speaker_pool,
                    "--method", method,
                    "--asr-model", args.asr_model,
                    "--out", method_eval_dir]
+            if speaker_pool.exists():
+                cmd += ["--speaker-pool", speaker_pool]
             if method in {"ga", "dpo"}:
                 final_adapter = adapters_root / word / method / (
                     f"adapter_epoch_{args.dpo_epochs}" if method == "dpo"

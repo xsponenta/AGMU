@@ -43,7 +43,9 @@ METHODS = {"reference", "rewrite", "ga", "dpo"}
 def parse_args():
     p = argparse.ArgumentParser(description="Evaluate one method on one word's eval set.")
     p.add_argument("--eval-prompts", type=Path, required=True)
-    p.add_argument("--speaker-pool", type=Path, required=True)
+    p.add_argument("--speaker-pool", type=Path, default=None,
+                   help="Optional. If present, override the default speaker pool. "
+                        "Required for ga/dpo to match training-time conditioning.")
     p.add_argument("--method", choices=sorted(METHODS), required=True)
     p.add_argument("--adapter", type=Path, default=None,
                    help="Required for method=ga or method=dpo.")
@@ -94,9 +96,19 @@ def main():
     if args.save_audio:
         audio_dir.mkdir(exist_ok=True)
 
-    speaker_pool = torch.load(args.speaker_pool, map_location="cpu")
-    bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))
-    bundle.speaker_embeddings = speaker_pool.to(device)
+    if args.method in {"ga", "dpo"} and (args.speaker_pool is None or not args.speaker_pool.exists()):
+        raise SystemExit(
+            f"--speaker-pool is required for method={args.method} to match "
+            "the speaker conditioning used at training time."
+        )
+
+    if args.speaker_pool is not None and args.speaker_pool.exists():
+        speaker_pool = torch.load(args.speaker_pool, map_location="cpu", weights_only=True)
+        bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))
+        bundle.speaker_embeddings = speaker_pool.to(device)
+    else:
+        # Reference / rewrite without a saved pool: use the default fallback pool.
+        bundle = load_tts(device=device)
     bundle = attach_adapter_if_any(bundle, args.method, args.adapter, device)
 
     asr = load_asr(args.asr_model)

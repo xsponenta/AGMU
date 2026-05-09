@@ -1,3 +1,3 @@
 method,split,n,forbidden_word_rate,retention_recall
-reference,target_eval,30,1.0,0.9426288440001591
-reference,retain_eval,50,0.0,0.9460206984913203
+reference,target_eval,30,1.0,0.9590842846947303
+reference,retain_eval,50,0.0,0.9433364879650048

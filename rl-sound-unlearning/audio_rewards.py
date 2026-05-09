@@ -83,16 +83,22 @@ def anti_periodicity_reward(audio: torch.Tensor, sample_rate: int = 16000,
 
 
 def in_batch_diversity_reward(audio: torch.Tensor) -> torch.Tensor:
-    """For each item, 1 - max cos-sim to any other item's log-mag spectrum."""
+    """For each item, 1 - max cos-sim to any other item's log-mag spectrum.
+
+    Cosine similarity is in [-1, 1]; (1 - sim) * 0.5 maps it to [0, 1] where
+    1.0 means "fully orthogonal to every other item" and 0.0 means "identical".
+    """
     mag = _spectrum(audio).mean(dim=-1)  # [B, F]
     mag = (mag + 1e-6).log()
     feats = F.normalize(mag, dim=-1)
     sim = feats @ feats.t()  # [B, B]
     sim.fill_diagonal_(-1.0)
     if sim.size(0) == 1:
-        return torch.ones(1, device=audio.device)
+        # No peers => no diversity signal; return zeros so this term doesn't
+        # silently dominate single-sample batches.
+        return torch.zeros(1, device=audio.device)
     peer = sim.max(dim=-1).values  # in roughly [-1, 1]
-    return (1.0 - peer).clamp(0.0, 1.0) * 0.5  # rescale to [0, 1]
+    return ((1.0 - peer) * 0.5).clamp(0.0, 1.0)
 
 
 def compute_rewards(critic, edited: torch.Tensor, target_idx: int,

@@ -173,7 +173,10 @@ def main():
                 prompt, rejected["mel"], spk_r,
             ).item()
 
-        chosen_text = chosen_text if row["split"] == "target_train" else prompt
+        # For retain anchors there is no separate "cleaned" prompt; the
+        # original prompt is what we want the policy to keep producing.
+        if row["split"] != "target_train":
+            chosen_text = prompt
         pairs.append({
             "prompt_idx": prompt_idx,
             "split": row["split"],
