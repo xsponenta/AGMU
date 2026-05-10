@@ -37,7 +37,7 @@ from speech_word_unlearning import remove_forbidden_words, word_unlearning_rewar
 from tts_unlearning import iter_jsonl, load_tts, sample_audio  # noqa: E402
 
 
-METHODS = {"reference", "rewrite", "ga", "dpo"}
+METHODS = {"reference", "rewrite", "ga", "dpo", "rl"}
 
 
 def parse_args():
@@ -51,7 +51,8 @@ def parse_args():
                    help="Required for method=ga or method=dpo.")
     p.add_argument("--asr-model", default="openai/whisper-small")
     p.add_argument("--out", type=Path, required=True)
-    p.add_argument("--speaker-idx", type=int, default=0)
+    p.add_argument("--num-speakers", type=int, default=4,
+                   help="Generate this many samples per prompt (one per speaker idx) and average.")
     p.add_argument("--sample-rate", type=int, default=16000)
     p.add_argument("--save-audio", action="store_true",
                    help="Persist generated wavs (off by default to save disk on large benchmarks).")
@@ -68,7 +69,7 @@ def transcribe(asr, waveform: torch.Tensor, sr: int) -> str:
 
 
 def attach_adapter_if_any(bundle, method: str, adapter: Path | None, device):
-    if method in {"ga", "dpo"}:
+    if method in {"ga", "dpo", "rl"}:
         if adapter is None:
             raise SystemExit(f"--adapter is required for method={method}")
         from peft import PeftModel
@@ -96,7 +97,7 @@ def main():
     if args.save_audio:
         audio_dir.mkdir(exist_ok=True)
 
-    if args.method in {"ga", "dpo"} and (args.speaker_pool is None or not args.speaker_pool.exists()):
+    if args.method in {"ga", "dpo", "rl"} and (args.speaker_pool is None or not args.speaker_pool.exists()):
         raise SystemExit(
             f"--speaker-pool is required for method={args.method} to match "
             "the speaker conditioning used at training time."
@@ -114,30 +115,43 @@ def main():
     asr = load_asr(args.asr_model)
 
     rows = []
+    n_pool = bundle.speaker_embeddings.size(0)
+    n_speakers = max(1, min(args.num_speakers, n_pool))
     for i, r in enumerate(iter_jsonl(args.eval_prompts)):
         forbidden = r.get("forbidden_words", []) or []
         gen_text = text_for_generation(args.method, r["prompt"], forbidden)
-        _, wav = sample_audio(bundle, gen_text, args.speaker_idx)
-        transcript = transcribe(asr, wav, args.sample_rate)
         retain_text = r.get("retain_hint") or r.get("desired_transcript") or r["prompt"]
-        m = word_unlearning_reward(transcript, forbidden, retain_text=retain_text)
 
-        path = ""
-        if args.save_audio:
-            path_obj = audio_dir / f"{i:04d}.wav"
-            sf.write(path_obj, wav.numpy(), args.sample_rate)
-            path = str(path_obj)
+        sample_metrics = []
+        sample_transcripts = []
+        sample_path = ""
+        for s in range(n_speakers):
+            speaker_idx = (s * max(1, n_pool // n_speakers)) % n_pool
+            _, wav = sample_audio(bundle, gen_text, speaker_idx)
+            transcript = transcribe(asr, wav, args.sample_rate)
+            m = word_unlearning_reward(transcript, forbidden, retain_text=retain_text)
+            sample_metrics.append(m)
+            sample_transcripts.append(transcript)
+            if args.save_audio and s == 0:
+                path_obj = audio_dir / f"{i:04d}.wav"
+                sf.write(path_obj, wav.numpy(), args.sample_rate)
+                sample_path = str(path_obj)
+
+        # Average across speakers. has_forbidden becomes a fraction in [0, 1].
+        has_forbidden_frac = sum(int(mm["has_forbidden"]) for mm in sample_metrics) / n_speakers
+        retention_mean = sum(mm["retention_recall"] for mm in sample_metrics) / n_speakers
+        reward_mean = sum(mm["reward"] for mm in sample_metrics) / n_speakers
 
         rows.append({
             "method": args.method,
             "split": r.get("split", ""),
             "prompt": r["prompt"],
             "generation_text": gen_text,
-            "transcript": transcript,
-            "has_forbidden": int(m["has_forbidden"]),
-            "retention_recall": m["retention_recall"],
-            "reward": m["reward"],
-            "path": path,
+            "transcript": " || ".join(sample_transcripts),
+            "has_forbidden": has_forbidden_frac,
+            "retention_recall": retention_mean,
+            "reward": reward_mean,
+            "path": sample_path,
         })
 
     fields = ["method", "split", "prompt", "generation_text", "transcript",
@@ -149,7 +163,7 @@ def main():
 
     # Aggregate per split.
     from collections import defaultdict
-    agg = defaultdict(lambda: {"n": 0, "fbd": 0, "ret": 0.0})
+    agg = defaultdict(lambda: {"n": 0, "fbd": 0.0, "ret": 0.0})
     for r in rows:
         a = agg[r["split"]]
         a["n"] += 1

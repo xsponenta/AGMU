@@ -1,0 +1,62 @@
+[
+  {
+    "epoch": 1,
+    "reward_mean": -0.03056578322395139,
+    "forbidden_rate": 1.0,
+    "retention_mean": 0.9694342167760484,
+    "pg_loss_mean": 5.4397763960878365e-05,
+    "kl_loss_mean": 0.539576455205679,
+    "baseline": -0.005050829146057367,
+    "n": 80
+  },
+  {
+    "epoch": 2,
+    "reward_mean": -0.04014120216364377,
+    "forbidden_rate": 1.0,
+    "retention_mean": 0.9598587978363561,
+    "pg_loss_mean": -0.0013055670991889202,
+    "kl_loss_mean": 0.361248242855072,
+    "baseline": -0.026931729167699814,
+    "n": 80
+  },
+  {
+    "epoch": 3,
+    "reward_mean": -0.04558576927654613,
+    "forbidden_rate": 1.0,
+    "retention_mean": 0.9544142307234538,
+    "pg_loss_mean": -0.0008169203385477886,
+    "kl_loss_mean": 0.369387473538518,
+    "baseline": -0.023190394043922424,
+    "n": 80
+  },
+  {
+    "epoch": 4,
+    "reward_mean": -0.026652104812990362,
+    "forbidden_rate": 0.9875,
+    "retention_mean": 0.9608478951870095,
+    "pg_loss_mean": -0.00019534774364728946,
+    "kl_loss_mean": 0.3411740636453032,
+    "baseline": -0.029339469969272614,
+    "n": 80
+  },
+  {
+    "epoch": 5,
+    "reward_mean": -0.013462162810548368,
+    "forbidden_rate": 0.975,
+    "retention_mean": 0.9615378371894515,
+    "pg_loss_mean": 0.003606387885520235,
+    "kl_loss_mean": 0.34095055498182775,
+    "baseline": 0.04683218151330948,
+    "n": 80
+  },
+  {
+    "epoch": 6,
+    "reward_mean": -0.033605833096641925,
+    "forbidden_rate": 0.9875,
+    "retention_mean": 0.953894166903358,
+    "pg_loss_mean": -0.00551491805454134,
+    "kl_loss_mean": 0.30950937792658806,
+    "baseline": -0.04401983693242073,
+    "n": 80
+  }
+]

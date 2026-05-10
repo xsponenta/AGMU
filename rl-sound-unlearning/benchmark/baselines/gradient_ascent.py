@@ -40,14 +40,14 @@ def parse_args():
     p = argparse.ArgumentParser(description="GA unlearning baseline.")
     p.add_argument("--pairs-dir", type=Path, required=True)
     p.add_argument("--out-dir", type=Path, required=True)
-    p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--lr", type=float, default=3e-5)
-    p.add_argument("--ga-coef", type=float, default=0.5,
+    p.add_argument("--epochs", type=int, default=10)
+    p.add_argument("--lr", type=float, default=1e-4)
+    p.add_argument("--ga-coef", type=float, default=2.0,
                    help="Weight on the ascent (forget) term.")
-    p.add_argument("--ga-clip", type=float, default=10.0,
-                   help="Stop ascending once NLL exceeds this; prevents collapse.")
-    p.add_argument("--retain-sft-coef", type=float, default=1.0)
-    p.add_argument("--lora-r", type=int, default=4)
+    p.add_argument("--ga-clip", type=float, default=1.5,
+                   help="Stop ascending once NLL exceeds this; SpeechT5 mel L1 is ~0.3-0.6.")
+    p.add_argument("--retain-sft-coef", type=float, default=0.3)
+    p.add_argument("--lora-r", type=int, default=16)
     p.add_argument("--seed", type=int, default=0)
     return p.parse_args()
 
@@ -60,6 +60,16 @@ def main():
     pairs = list(iter_jsonl(args.pairs_dir / "pairs.jsonl"))
     if not pairs:
         raise SystemExit(f"No pairs in {args.pairs_dir}")
+
+    n_before = len(pairs)
+    def _keep(p):
+        if p.get("is_retain_anchor", False):
+            return True
+        # Skip target pairs whose "rejected" doesn't actually contain the forbidden
+        # word -- ascending its NLL would just damage a clean utterance.
+        return p.get("rejected_metrics", {}).get("has_forbidden", True)
+    pairs = [p for p in pairs if _keep(p)]
+    print(f"[ga] kept {len(pairs)}/{n_before} pairs after filter")
     speaker_pool = torch.load(args.pairs_dir / "speaker_pool.pt", map_location="cpu", weights_only=True)
 
     bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))

@@ -1,22 +1,18 @@
 {
   "words": [
     "father",
-    "fire",
-    "house",
     "love",
-    "money",
-    "morning",
-    "mother",
-    "night",
-    "water",
     "world"
   ],
   "methods": [
     "reference",
     "rewrite",
     "ga",
-    "dpo"
+    "dpo",
+    "rl"
   ],
-  "dpo_epochs": 4,
-  "ga_epochs": 3
+  "dpo_epochs": 10,
+  "ga_epochs": 6,
+  "rl_epochs": 6,
+  "eval_speakers": 2
 }

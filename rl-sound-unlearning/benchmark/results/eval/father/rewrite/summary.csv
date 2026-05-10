@@ -1,3 +1,3 @@
 method,split,n,forbidden_word_rate,retention_recall
-rewrite,target_eval,30,0.0,0.9152771975112128
-rewrite,retain_eval,50,0.0,0.9003711540982909
+rewrite,target_eval,30,0.0,0.9126465173076426
+rewrite,retain_eval,50,0.0,0.9258246035156419

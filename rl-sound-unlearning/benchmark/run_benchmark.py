@@ -28,14 +28,18 @@ def parse_args():
     p.add_argument("--data-dir", type=Path, default=Path("benchmark/data"))
     p.add_argument("--out-dir", type=Path, default=Path("benchmark/results"))
     p.add_argument("--asr-model", default="openai/whisper-small")
-    p.add_argument("--num-candidates", type=int, default=4,
+    p.add_argument("--num-candidates", type=int, default=8,
                    help="K for rejection sampling at pair-build time.")
-    p.add_argument("--dpo-epochs", type=int, default=4)
-    p.add_argument("--ga-epochs", type=int, default=3)
+    p.add_argument("--dpo-epochs", type=int, default=15)
+    p.add_argument("--ga-epochs", type=int, default=10)
+    p.add_argument("--rl-epochs", type=int, default=8,
+                   help="Epochs for the on-policy ASR-reward RL method.")
+    p.add_argument("--eval-speakers", type=int, default=4,
+                   help="Number of speaker indices averaged at eval time.")
     p.add_argument("--only-words", nargs="*", default=None,
                    help="If set, only run on this subset of words.")
     p.add_argument("--only-methods", nargs="*",
-                   default=["reference", "rewrite", "ga", "dpo"])
+                   default=["reference", "rewrite", "ga", "dpo", "rl"])
     p.add_argument("--skip-build-pairs", action="store_true")
     p.add_argument("--skip-train", action="store_true",
                    help="Reuse existing adapters; only re-run eval.")
@@ -67,7 +71,7 @@ def main():
         words = [w for w in words if w in args.only_words]
     if not words:
         raise SystemExit("No words to benchmark.")
-    methods = [m for m in args.only_methods if m in {"reference", "rewrite", "ga", "dpo"}]
+    methods = [m for m in args.only_methods if m in {"reference", "rewrite", "ga", "dpo", "rl"}]
     if not methods:
         raise SystemExit("No valid methods selected.")
 
@@ -86,7 +90,7 @@ def main():
 
         # Stage 1: rejection sampling -> pairs.jsonl + speaker_pool.pt
         needs_pairs = not (pairs_dir / "pairs.jsonl").exists()
-        if needs_pairs and not args.skip_build_pairs and ({"ga", "dpo"} & set(methods)):
+        if needs_pairs and not args.skip_build_pairs and ({"ga", "dpo", "rl"} & set(methods)):
             run([PYTHON, "scripts/build_dpo_pairs.py",
                  "--prompts", train_jsonl,
                  "--out", pairs_dir,
@@ -94,15 +98,14 @@ def main():
                  "--asr-model", args.asr_model,
                  "--include-retain"])
 
+        adapter_epochs = {"dpo": args.dpo_epochs, "ga": args.ga_epochs, "rl": args.rl_epochs}
+
         # Stage 2: training (per method)
         for method in methods:
             if method in {"reference", "rewrite"}:
                 continue
             adapter_dir = adapters_root / word / method
-            final_adapter = adapter_dir / (
-                f"adapter_epoch_{args.dpo_epochs}" if method == "dpo"
-                else f"adapter_epoch_{args.ga_epochs}"
-            )
+            final_adapter = adapter_dir / f"adapter_epoch_{adapter_epochs[method]}"
             if not args.skip_train and not final_adapter.exists():
                 if method == "dpo":
                     run([PYTHON, "train_tts_dpo_unlearning.py",
@@ -110,11 +113,23 @@ def main():
                          "--pairs-dir", pairs_dir,
                          "--out-dir", adapter_dir,
                          "--epochs", args.dpo_epochs])
-                else:  # ga
+                elif method == "ga":
                     run([PYTHON, "benchmark/baselines/gradient_ascent.py",
                          "--pairs-dir", pairs_dir,
                          "--out-dir", adapter_dir,
                          "--epochs", args.ga_epochs])
+                else:  # rl
+                    rl_cmd = [PYTHON, "train_tts_rl_unlearning.py",
+                              "--prompts", train_jsonl,
+                              "--out-dir", adapter_dir,
+                              "--asr-model", args.asr_model,
+                              "--epochs", args.rl_epochs]
+                    if speaker_pool.exists():
+                        rl_cmd += ["--speaker-pool", speaker_pool]
+                    pairs_jsonl = pairs_dir / "pairs.jsonl"
+                    if pairs_jsonl.exists():
+                        rl_cmd += ["--retain-anchors", pairs_jsonl]
+                    run(rl_cmd)
 
         # Stage 3: eval
         for method in methods:
@@ -125,14 +140,12 @@ def main():
                    "--eval-prompts", eval_jsonl,
                    "--method", method,
                    "--asr-model", args.asr_model,
+                   "--num-speakers", args.eval_speakers,
                    "--out", method_eval_dir]
             if speaker_pool.exists():
                 cmd += ["--speaker-pool", speaker_pool]
-            if method in {"ga", "dpo"}:
-                final_adapter = adapters_root / word / method / (
-                    f"adapter_epoch_{args.dpo_epochs}" if method == "dpo"
-                    else f"adapter_epoch_{args.ga_epochs}"
-                )
+            if method in {"ga", "dpo", "rl"}:
+                final_adapter = adapters_root / word / method / f"adapter_epoch_{adapter_epochs[method]}"
                 cmd += ["--adapter", final_adapter]
             if args.save_audio:
                 cmd.append("--save-audio")
@@ -188,7 +201,8 @@ def main():
 
     with open(args.out_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump({"words": words, "methods": methods,
-                   "dpo_epochs": args.dpo_epochs, "ga_epochs": args.ga_epochs}, f, indent=2)
+                   "dpo_epochs": args.dpo_epochs, "ga_epochs": args.ga_epochs,
+                   "rl_epochs": args.rl_epochs, "eval_speakers": args.eval_speakers}, f, indent=2)
 
 
 if __name__ == "__main__":

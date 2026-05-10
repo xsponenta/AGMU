@@ -93,6 +93,22 @@ def main():
     pairs = list(iter_jsonl(pairs_dir / "pairs.jsonl"))
     if not pairs:
         raise SystemExit(f"No pairs in {pairs_dir}/pairs.jsonl. Run build_dpo_pairs.py first.")
+
+    # Runtime filter for legacy pairs.jsonl files that were built before
+    # build_dpo_pairs.py learned to discard bad pairs at construction time.
+    n_before = len(pairs)
+    def _keep(p):
+        if p.get("is_retain_anchor", False):
+            return True
+        if p.get("chosen_metrics", {}).get("has_forbidden", False):
+            return False  # chosen still says the word -- gradient points the wrong way
+        if p.get("chosen_metrics", {}).get("retention_recall", 1.0) < 0.7:
+            return False
+        if abs(float(p.get("ref_nlp_chosen", 0.0)) - float(p.get("ref_nlp_rejected", 0.0))) < 0.05:
+            return False  # no preference signal
+        return True
+    pairs = [p for p in pairs if _keep(p)]
+    print(f"[dpo] kept {len(pairs)}/{n_before} pairs after quality filter")
     speaker_pool = torch.load(pairs_dir / "speaker_pool.pt", map_location="cpu", weights_only=True)
 
     bundle = load_tts(device=device, num_speakers=speaker_pool.size(0))

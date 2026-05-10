@@ -29,14 +29,14 @@
   "peft_type": "LORA",
   "peft_version": "0.19.1",
   "qalora_group_size": 16,
-  "r": 4,
+  "r": 16,
   "rank_pattern": {},
   "revision": null,
   "target_modules": [
+    "k_proj",
     "out_proj",
     "v_proj",
-    "q_proj",
-    "k_proj"
+    "q_proj"
   ],
   "target_parameters": null,
   "task_type": null,

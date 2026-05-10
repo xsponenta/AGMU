@@ -53,6 +53,11 @@ def parse_args():
     p.add_argument("--sample-rate", type=int, default=16000)
     p.add_argument("--include-retain", action="store_true",
                    help="Also build pairs for retain prompts (for retention DPO).")
+    p.add_argument("--min-chosen-recall", type=float, default=0.7,
+                   help="Discard target pairs whose chosen sample has retention_recall below this.")
+    p.add_argument("--min-ref-margin", type=float, default=0.05,
+                   help="Discard target pairs where |ref_nlp_chosen - ref_nlp_rejected| < this. "
+                        "These pairs give DPO no usable preference signal.")
     p.add_argument("--seed", type=int, default=0)
     return p.parse_args()
 
@@ -108,6 +113,9 @@ def main():
         return cands
 
     pairs = []
+    n_dropped_chosen_quality = 0
+    n_dropped_ref_margin = 0
+    n_dropped_chosen_forbidden = 0
     for prompt_idx, row in enumerate(iter_jsonl(args.prompts)):
         if row.get("split") not in {"target_train", "retain_train"}:
             continue
@@ -132,6 +140,17 @@ def main():
             rejected_cands = sample_best(prompt, row, args.num_candidates)
             chosen = chosen_cands[0]                # best (cleanest) of the cleaned-prompt pool
             rejected = rejected_cands[-1]           # worst (most forbidden) of the original-prompt pool
+
+            # Quality filters: bad pairs make DPO learn nothing.
+            if chosen["metrics"]["has_forbidden"]:
+                n_dropped_chosen_forbidden += 1
+                print(f"[{prompt_idx}] dropped: chosen still contains forbidden word")
+                continue
+            if chosen["metrics"]["retention_recall"] < args.min_chosen_recall:
+                n_dropped_chosen_quality += 1
+                print(f"[{prompt_idx}] dropped: chosen retention "
+                      f"{chosen['metrics']['retention_recall']:.2f} < {args.min_chosen_recall}")
+                continue
 
         else:  # retain_train
             # No forbidden word in this prompt. Build a retain-anchor entry:
@@ -173,6 +192,16 @@ def main():
                 prompt, rejected["mel"], spk_r,
             ).item()
 
+        # Drop target pairs where the reference can't tell chosen from rejected:
+        # the DPO margin (ref_c - nlp_pi_c) - (ref_r - nlp_pi_r) starts at zero
+        # and there is no preference direction to optimize.
+        if (row["split"] == "target_train"
+                and abs(ref_nlp_chosen - ref_nlp_rejected) < args.min_ref_margin):
+            n_dropped_ref_margin += 1
+            print(f"[{prompt_idx}] dropped: |ref margin| "
+                  f"{abs(ref_nlp_chosen - ref_nlp_rejected):.3f} < {args.min_ref_margin}")
+            continue
+
         # For retain anchors there is no separate "cleaned" prompt; the
         # original prompt is what we want the policy to keep producing.
         if row["split"] != "target_train":
@@ -209,6 +238,13 @@ def main():
     torch.save(bundle.speaker_embeddings.cpu(), args.out / "speaker_pool.pt")
     write_jsonl(pairs, args.out / "pairs.jsonl")
     print(f"Wrote {len(pairs)} pairs to {args.out / 'pairs.jsonl'}")
+    n_target = sum(1 for p in pairs if not p.get("is_retain_anchor", False))
+    n_retain = sum(1 for p in pairs if p.get("is_retain_anchor", False))
+    print(f"  target pairs kept:  {n_target}")
+    print(f"  retain anchors:     {n_retain}")
+    print(f"  dropped (chosen still has forbidden):    {n_dropped_chosen_forbidden}")
+    print(f"  dropped (chosen retention too low):      {n_dropped_chosen_quality}")
+    print(f"  dropped (|ref margin| below threshold):  {n_dropped_ref_margin}")
 
 
 if __name__ == "__main__":

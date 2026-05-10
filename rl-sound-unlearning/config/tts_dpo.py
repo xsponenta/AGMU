@@ -8,15 +8,15 @@ def get_config():
         "out_dir": "logs/tts_dpo",
 
         # Optimization
-        "num_epochs": 4,
+        "num_epochs": 15,
         "batch_size": 1,
-        "lr": 3e-5,
-        "beta": 0.05,               # DPO temperature (lower => smaller drift)
-        "sft_coef": 0.2,            # SFT weight on chosen mels for target pairs
-        "retain_sft_coef": 1.0,     # SFT weight on retain-anchor mels (pin retain)
+        "lr": 1e-4,
+        "beta": 1.0,                # DPO temperature; mel L1 loss is O(1) so beta must be O(1)
+        "sft_coef": 0.4,            # SFT weight on chosen mels for target pairs
+        "retain_sft_coef": 0.3,     # don't let retain SFT drown the DPO signal
 
         # LoRA
-        "lora_r": 4,                # smaller adapter => less retain damage
+        "lora_r": 16,
 
         "seed": 0,
     }
